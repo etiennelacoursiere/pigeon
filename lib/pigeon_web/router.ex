@@ -19,6 +19,7 @@ defmodule PigeonWeb.Router do
 
     live "/", Monitors.Index
     live "/monitors", Monitors.Index
+    live "/incidents", Incidents.Index
   end
 
   # Other scopes may use custom stacks.

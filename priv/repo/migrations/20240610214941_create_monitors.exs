@@ -4,8 +4,9 @@ defmodule Pigeon.Repo.Migrations.CreateMonitoring do
   def change do
     create table(:monitors) do
       add :name, :string
-      add :url, :string
+      add :url, :string, null: false
       add :status, :string
+      add :status_changed_at, :naive_datetime
 
       timestamps()
     end

@@ -6,50 +6,51 @@ defmodule Pigeon.Monitoring.MonitorWorker do
 
   alias Pigeon.Monitoring
 
-  def insert(monitor_id, opts \\ []) do
-    schedule_in = Keyword.get(opts, :schedule_in, nil)
-    args = %{"monitor_id" => monitor_id}
+  def insert(monitor_id) do
+    new(%{"monitor_id" => monitor_id}) |> Oban.insert()
+  end
 
-    job =
-      case schedule_in do
-        nil -> new(args)
-        schedule_in -> new(args, schedule_in: schedule_in)
-      end
-
-    Oban.insert(job)
+  defp schedule(monitor) do
+    new(%{"monitor_id" => monitor.id}, schedule_in: monitor.settings.interval) |> Oban.insert()
   end
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"monitor_id" => monitor_id}} = job) do
-    monitor = Monitoring.get_monitor(monitor_id) |> Pigeon.Repo.preload(:settings)
-
-    case monitor do
-      nil ->
-        Oban.cancel_job(job)
-        {:error, "Monitor with id #{monitor_id} not found"}
-
-      _ ->
-        poke_monitor(monitor)
-        insert(monitor.id, schedule_in: monitor.settings.interval)
-
-        {:ok, monitor}
-    end
+    monitor_id
+    |> Monitoring.get_monitor()
+    |> Pigeon.Repo.preload(:settings)
+    |> process_monitor(job)
   end
 
-  defp poke_monitor(monitor) do
-    case Monitoring.poke(monitor) do
-      {:ok, %{status: status}} ->
-        new_status = get_status(status)
+  defp process_monitor(nil, job) do
+    Oban.cancel_job(job)
+    {:error, "Monitor not found"}
+  end
 
-        if get_status(status) != monitor.status do
-          # TODO: insert a incident if status is down
-          Monitoring.update_monitor_status(monitor, %{status: new_status})
+  defp process_monitor(monitor, _job) do
+    case Monitoring.poke_monitor(monitor) do
+      {:ok, %{status: response_status}} ->
+        new_monitor_status = get_status(response_status)
+
+        if new_monitor_status != monitor.status do
+          Monitoring.update_monitor_status(monitor, %{status: new_monitor_status})
+
+          case new_monitor_status do
+            :down -> Monitoring.create_incident(monitor, %{root_cause: inspect(response_status)})
+            :up -> Monitoring.resolve_latest_incident(monitor)
+          end
         end
 
       {:error, reason} ->
-        Monitoring.update_monitor_status(monitor, %{status: :down})
-        IO.inspect("Got an error: #{inspect(reason)} when poking monitor #{monitor.id}")
+        if monitor.status != :down do
+          Monitoring.update_monitor_status(monitor, %{status: :down})
+          Monitoring.create_incident(monitor, %{root_cause: inspect(reason)})
+        end
     end
+
+    schedule(monitor)
+
+    {:ok, monitor}
   end
 
   # TODO: Refactor to take preferences into account.
