@@ -14,10 +14,11 @@ defmodule PigeonWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/", PigeonWeb do
+  scope "/", PigeonWeb.Live do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live "/", Monitors.Index
+    live "/monitors", Monitors.Index
   end
 
   # Other scopes may use custom stacks.

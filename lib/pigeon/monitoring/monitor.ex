@@ -5,7 +5,7 @@ defmodule Pigeon.Monitoring.Monitor do
   schema "monitors" do
     field :name, :string
     field :url, :string
-    field :status, Ecto.Enum, values: [:up, :down], default: :down
+    field :status, Ecto.Enum, values: [:up, :down, :paused], default: :paused
 
     has_one :settings, Pigeon.Monitoring.MonitorSettings
 

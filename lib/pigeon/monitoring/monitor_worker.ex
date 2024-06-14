@@ -47,7 +47,7 @@ defmodule Pigeon.Monitoring.MonitorWorker do
         end
 
       {:error, reason} ->
-        # TODO: investigate when could this happen and what should we do in the case it happens.
+        Monitoring.update_monitor_status(monitor, %{status: :down})
         IO.inspect("Got an error: #{inspect(reason)} when poking monitor #{monitor.id}")
     end
   end
