@@ -4,7 +4,9 @@ defmodule PigeonWeb.Components do
       import PigeonWeb.Components.{
         BasicTable,
         LinkList,
-        Status
+        Status,
+        Button,
+        Input
       }
     end
   end

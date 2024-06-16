@@ -19,7 +19,13 @@ defmodule PigeonWeb.Router do
 
     live "/", Monitors.Index
     live "/monitors", Monitors.Index
+    live "/monitors/new", Monitors.Form, :new
+    live "/monitors/:id/", Monitors.Show
+    live "/monitors/:id/edit", Monitors.Form, :edit
+
     live "/incidents", Incidents.Index
+
+    live "/user-settings", UserSettings.Form
   end
 
   # Other scopes may use custom stacks.

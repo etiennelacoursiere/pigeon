@@ -25,35 +25,41 @@ defmodule PigeonWeb.Live.Monitors.Index do
   def render(assigns) do
     ~H"""
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold">Monitoring</h1>
-      <button
-        type="button"
-        class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-      >
-        <.link navigate={~p"/monitors/new"} class="btn btn-primary">New Monitor</.link>
-      </button>
+      <h1 class="text-2xl font-bold">Monitors</h1>
+      <.link navigate={~p"/monitors/new"} class={button_class()}>New Monitor</.link>
     </div>
-    <.link_list :let={monitor} rows={@monitors}>
-      <div class="flex items-center gap-x-4">
-        <.status status={monitor.status} />
-        <div>
-          <.link navigate={~p"/monitors/#{monitor.id}"} class="font-medium hover:underline">
-            <%= monitor.name %>
-          </.link>
-          <p class="text-xs">
-            <%= monitor.status %> for <%= time_since_last_status_change(monitor) %>
+    <%= if length(@monitors) == 0 do %>
+      <p class="text-gray-500">No monitors found</p>
+    <% else %>
+      <.link_list :let={monitor} rows={@monitors}>
+        <div class="flex items-center gap-x-4">
+          <.status status={monitor.status} />
+          <div>
+            <.link navigate={~p"/monitors/#{monitor.id}"} class="font-medium hover:underline">
+              <%= monitor.name %>
+            </.link>
+            <p class="text-xs">
+              <%= monitor.status %> for <%= time_since_last_status_change(monitor) %>
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <.icon name="hero-arrow-path" class="w-4 h-4" />
+          <p>
+            <%= interval(monitor.settings.interval) %>
           </p>
         </div>
-      </div>
-      <div class="flex items-center">
-        <p>every <%= interval_in_min(monitor.settings.interval) %> min</p>
-      </div>
-    </.link_list>
+      </.link_list>
+    <% end %>
     """
   end
 
-  defp interval_in_min(interval) do
-    (interval / 60) |> round()
+  defp interval(interval) do
+    case Timex.Duration.from_seconds(interval) |> Timex.Duration.to_clock() do
+      {0, 0, s, _ms} -> "#{s}s"
+      {0, m, 0, _ms} -> "#{m}m"
+      {h, 0, 0, _ms} -> "#{h}h"
+    end
   end
 
   defp time_since_last_status_change(monitor) do
@@ -63,6 +69,6 @@ defmodule PigeonWeb.Live.Monitors.Index do
       |> Timex.Duration.from_seconds()
       |> Timex.Duration.to_clock()
 
-    "#{h}h #{m}m "
+    "#{h}h #{m}m"
   end
 end
