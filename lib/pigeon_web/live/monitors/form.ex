@@ -28,6 +28,13 @@ defmodule PigeonWeb.Live.Monitors.Form do
   end
 
   def handle_event("submit", %{"monitor" => params}, socket) do
+    case socket.assigns.live_action do
+      :new -> create_monitor(params, socket)
+      :edit -> update_monitor(params, socket)
+    end
+  end
+
+  def create_monitor(params, socket) do
     case Monitoring.create_monitor(params) do
       {:ok, monitor} ->
         Monitoring.start_monitoring(monitor.id)
@@ -38,16 +45,28 @@ defmodule PigeonWeb.Live.Monitors.Form do
     end
   end
 
+  def update_monitor(params, socket) do
+    case Monitoring.update_monitor(socket.assigns.form.data, params) do
+      {:ok, monitor} ->
+        {:noreply, redirect(socket, to: ~p"/monitors")}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, :form, to_form(changeset))}
+    end
+  end
+
   def options_for_interval() do
-    [
-      {"Fast as fuck ( 15s )", 15},
-      {"1m", 60},
-      {"5m", 300},
-      {"30m", 1800},
-      {"1h", 3600},
-      {"12h", 43200},
-      {"24h", 86400}
-    ]
+    Enum.map(
+      Monitoring.MonitorSettings.intervals(),
+      fn
+        60 -> {"1m", 60}
+        300 -> {"5m", 300}
+        1800 -> {"30m", 1800}
+        3600 -> {"1h", 3600}
+        43200 -> {"12h", 43200}
+        86400 -> {"24h", 86400}
+      end
+    )
   end
 
   def render(assigns) do

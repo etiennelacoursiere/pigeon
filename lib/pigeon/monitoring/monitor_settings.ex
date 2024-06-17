@@ -13,10 +13,14 @@ defmodule Pigeon.Monitoring.MonitorSettings do
     timestamps()
   end
 
+  def intervals, do: [60, 300, 1800, 3600, 43200, 86400]
+
   @optional [:interval, :check_ssl_errors, :ssl_expiry_reminders, :domain_expiry_reminders]
   def changeset(settings, attrs \\ %{}) do
     settings
     |> cast(attrs, @optional)
     |> validate_required(@optional)
+
+    # TODO: Validate interval in intervals()
   end
 end

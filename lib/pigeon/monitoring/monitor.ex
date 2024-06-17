@@ -2,10 +2,13 @@ defmodule Pigeon.Monitoring.Monitor do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @statuses [:up, :down, :paused]
+  def statuses(), do: @statuses
+
   schema "monitors" do
     field :name, :string
     field :url, :string
-    field :status, Ecto.Enum, values: [:up, :down, :paused], default: :paused
+    field :status, Ecto.Enum, values: @statuses, default: :paused
     field :status_changed_at, :naive_datetime
 
     has_one :settings, Pigeon.Monitoring.MonitorSettings
