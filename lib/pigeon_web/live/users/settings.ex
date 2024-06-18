@@ -4,77 +4,6 @@ defmodule PigeonWeb.Live.Users.Settings do
 
   alias Pigeon.Accounts
 
-  def render(assigns) do
-    ~H"""
-    <div class="max-w-3xl mx-auto">
-      <.header>
-        Account Settings
-        <:subtitle>Manage your account email address and password settings</:subtitle>
-      </.header>
-      <div class="space-y-12 divide-y">
-        <div>
-          <.simple_form
-            for={@email_form}
-            id="email_form"
-            phx-submit="update_email"
-            phx-change="validate_email"
-          >
-            <.input field={@email_form[:email]} type="email" label="Email" required />
-            <.input
-              field={@email_form[:current_password]}
-              name="current_password"
-              id="current_password_for_email"
-              type="password"
-              label="Current password"
-              value={@email_form_current_password}
-              required
-            />
-            <:actions>
-              <.button phx-disable-with="Changing...">Change Email</.button>
-            </:actions>
-          </.simple_form>
-        </div>
-        <div>
-          <.simple_form
-            for={@password_form}
-            id="password_form"
-            action={~p"/users/log_in?_action=password_updated"}
-            method="post"
-            phx-change="validate_password"
-            phx-submit="update_password"
-            phx-trigger-action={@trigger_submit}
-          >
-            <input
-              name={@password_form[:email].name}
-              type="hidden"
-              id="hidden_user_email"
-              value={@current_email}
-            />
-            <.input field={@password_form[:password]} type="password" label="New password" required />
-            <.input
-              field={@password_form[:password_confirmation]}
-              type="password"
-              label="Confirm new password"
-            />
-            <.input
-              field={@password_form[:current_password]}
-              name="current_password"
-              type="password"
-              label="Current password"
-              id="current_password_for_password"
-              value={@current_password}
-              required
-            />
-            <:actions>
-              <.button phx-disable-with="Changing...">Change Password</.button>
-            </:actions>
-          </.simple_form>
-        </div>
-      </div>
-    </div>
-    """
-  end
-
   def mount(%{"token" => token}, _session, socket) do
     socket =
       case Accounts.update_user_email(socket.assigns.current_user, token) do
@@ -92,6 +21,7 @@ defmodule PigeonWeb.Live.Users.Settings do
     user = socket.assigns.current_user
     email_changeset = Accounts.change_user_email(user)
     password_changeset = Accounts.change_user_password(user)
+    tz_changeset = Accounts.change_user_timezone(user)
 
     socket =
       socket
@@ -100,6 +30,7 @@ defmodule PigeonWeb.Live.Users.Settings do
       |> assign(:current_email, user.email)
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:password_form, to_form(password_changeset))
+      |> assign(:tz_form, to_form(tz_changeset))
       |> assign(:trigger_submit, false)
 
     {:ok, socket}
@@ -137,6 +68,28 @@ defmodule PigeonWeb.Live.Users.Settings do
     end
   end
 
+  def handle_event("update_timezone", %{"user" => params}, socket) do
+    user = socket.assigns.current_user
+
+    case Accounts.update_user_timezone(user, params) do
+      {:ok, user} ->
+        tz_form =
+          user
+          |> Accounts.change_user_timezone(params)
+          |> to_form()
+
+        socket =
+          socket
+          |> put_flash(:info, "Timezone updated successfully.")
+          |> assign(:tz_form, tz_form)
+
+        {:noreply, socket}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, tz_form: to_form(changeset))}
+    end
+  end
+
   def handle_event("validate_password", params, socket) do
     %{"current_password" => password, "user" => user_params} = params
 
@@ -165,5 +118,94 @@ defmodule PigeonWeb.Live.Users.Settings do
       {:error, changeset} ->
         {:noreply, assign(socket, password_form: to_form(changeset))}
     end
+  end
+
+  def timezone_options() do
+    Tzdata.zone_list()
+  end
+
+  def render(assigns) do
+    ~H"""
+    <div class="max-w-3xl mx-auto">
+      <.header>
+        Account Settings
+        <:subtitle>Manage your account</:subtitle>
+      </.header>
+      <div class="space-y-12 divide-y">
+        <div>
+          <.simple_form for={@tz_form} id="tz_form" phx-submit="update_timezone">
+            <.input
+              field={@tz_form[:timezone]}
+              type="select"
+              label="Timezone"
+              required
+              options={timezone_options()}
+            />
+            <:actions>
+              <.button phx-disable-with="Changing...">Change timezone</.button>
+            </:actions>
+          </.simple_form>
+        </div>
+        <div>
+          <.simple_form
+            for={@email_form}
+            id="email_form"
+            phx-submit="update_email"
+            phx-change="validate_email"
+          >
+            <.input field={@email_form[:email]} type="email" label="Email" required />
+            <.input
+              field={@email_form[:current_password]}
+              name="current_password"
+              id="current_password_for_email"
+              type="password"
+              label="Current password"
+              value={@email_form_current_password}
+              required
+            />
+            <:actions>
+              <.button phx-disable-with="Changing...">Change email</.button>
+            </:actions>
+          </.simple_form>
+        </div>
+        <div>
+          <.simple_form
+            for={@password_form}
+            id="password_form"
+            action={~p"/users/log_in?_action=password_updated"}
+            method="post"
+            phx-change="validate_password"
+            phx-submit="update_password"
+            phx-trigger-action={@trigger_submit}
+          >
+            <input
+              name={@password_form[:email].name}
+              type="hidden"
+              id="hidden_user_email"
+              value={@current_email}
+            />
+            <.input field={@password_form[:password]} type="password" label="New password" required />
+            <.input
+              field={@password_form[:password_confirmation]}
+              type="password"
+              label="Confirm new password"
+            />
+            <.input
+              field={@password_form[:current_password]}
+              name="current_password"
+              type="password"
+              label="Current password"
+              id="current_password_for_password"
+              value={@current_password}
+              required
+            />
+            <:actions>
+              <.button phx-disable-with="Changing...">Change password</.button>
+            </:actions>
+          </.simple_form>
+        </div>
+      </div>
+    </div>
+    """
   end
 end

@@ -38,7 +38,7 @@ defmodule PigeonWeb.Live.Monitors.Form do
     case Monitoring.create_monitor(params) do
       {:ok, monitor} ->
         Monitoring.start_monitoring(monitor.id)
-        {:noreply, redirect(socket, to: ~p"/monitors")}
+        {:noreply, redirect(socket, to: ~p"/monitors/#{monitor.id}")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
@@ -46,9 +46,11 @@ defmodule PigeonWeb.Live.Monitors.Form do
   end
 
   def update_monitor(params, socket) do
-    case Monitoring.update_monitor(socket.assigns.form.data, params) do
+    monitor = socket.assigns.form.data
+
+    case Monitoring.update_monitor(monitor, params) do
       {:ok, _monitor} ->
-        {:noreply, redirect(socket, to: ~p"/monitors")}
+        {:noreply, redirect(socket, to: ~p"/monitors/#{monitor.id}")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}

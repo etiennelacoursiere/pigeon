@@ -174,6 +174,17 @@ defmodule Pigeon.Accounts do
     UserNotifier.deliver_update_email_instructions(user, update_email_url_fun.(encoded_token))
   end
 
+  def change_user_timezone(user, attrs \\ %{}) do
+    User.timezone_changeset(user, attrs)
+  end
+
+  def update_user_timezone(user, attrs) do
+    user
+    |> User.timezone_changeset(attrs)
+    |> IO.inspect()
+    |> Repo.update()
+  end
+
   @doc """
   Returns an `%Ecto.Changeset{}` for changing the user password.
 

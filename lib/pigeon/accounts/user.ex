@@ -8,6 +8,7 @@ defmodule Pigeon.Accounts.User do
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
+    field :timezone, :string
 
     timestamps(type: :utc_datetime)
   end
@@ -101,6 +102,11 @@ defmodule Pigeon.Accounts.User do
       %{changes: %{email: _}} = changeset -> changeset
       %{} = changeset -> add_error(changeset, :email, "did not change")
     end
+  end
+
+  def timezone_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:timezone])
   end
 
   @doc """
