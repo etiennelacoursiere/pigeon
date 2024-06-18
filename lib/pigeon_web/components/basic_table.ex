@@ -16,7 +16,7 @@ defmodule PigeonWeb.Components.BasicTable do
             <%= for col <- @column do %>
               <th
                 scope="col"
-                class="hidden px-3 py-3.5 text-left text-sm font-semibold text-gray-900 lg:table-cell"
+                class="hidden px-3 py-3.5 text-left text-xs font-semibold text-gray-900 lg:table-cell"
               >
                 <%= col.label %>
               </th>

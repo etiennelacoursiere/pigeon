@@ -8,10 +8,11 @@ defmodule Pigeon.Monitoring do
     Monitor
     |> order_by(:name)
     |> Repo.all()
+    |> Repo.preload(:settings)
   end
 
   def get_monitor(id) do
-    Repo.get(Monitor, id)
+    Repo.get(Monitor, id) |> Repo.preload(:settings)
   end
 
   def create_monitor(attrs) do
@@ -39,7 +40,7 @@ defmodule Pigeon.Monitoring do
     Pigeon.Monitoring.MonitorWorker.insert(monitor_id)
   end
 
-  def pause_monitoring(monitor_id) do
+  def pause_monitoring(%Monitor{id: monitor_id} = monitor) do
     monitor_id = to_string(monitor_id)
 
     Oban.Job
@@ -47,9 +48,7 @@ defmodule Pigeon.Monitoring do
     |> where([j], fragment("?->>'monitor_id' = ?", j.args, ^monitor_id))
     |> Oban.cancel_all_jobs()
 
-    monitor_id
-    |> get_monitor()
-    |> update_monitor_status(%{status: :paused})
+    update_monitor_status(monitor, %{status: :paused})
   end
 
   def poke_monitor(%Monitor{id: id, url: url}) do
@@ -63,6 +62,10 @@ defmodule Pigeon.Monitoring do
     |> order_by([i], desc: i.inserted_at)
     |> Repo.all()
     |> Repo.preload([:monitor])
+  end
+
+  def get_incident(id) do
+    Repo.get(Incident, id) |> Repo.preload([:monitor])
   end
 
   def create_incident(monitor, attrs \\ %{}) do
@@ -92,17 +95,21 @@ defmodule Pigeon.Monitoring do
     end
   end
 
-  def get_incident(id) do
-    Repo.get(Incident, id)
-  end
-
   @topic inspect(__MODULE__)
-  def subscribe() do
-    Phoenix.PubSub.subscribe(Pigeon.PubSub, @topic)
+  @schemas [:monitor, :incident]
+
+  def subscribe(schema) when schema in @schemas do
+    Phoenix.PubSub.subscribe(Pigeon.PubSub, "#{@topic}:#{to_string(schema)}")
   end
 
-  def broadcast({:ok, result}, event) do
-    Phoenix.PubSub.broadcast(Pigeon.PubSub, @topic, {__MODULE__, event, result})
+  def subscribe(schema, id) when schema in @schemas do
+    Phoenix.PubSub.subscribe(Pigeon.PubSub, "#{@topic}:#{to_string(schema)}:#{id}")
+  end
+
+  def broadcast({:ok, result}, [schema, _] = event) do
+    topic = "#{@topic}:#{to_string(schema)}"
+    Phoenix.PubSub.broadcast(Pigeon.PubSub, topic, {__MODULE__, event, result})
+    Phoenix.PubSub.broadcast(Pigeon.PubSub, "#{topic}:#{result.id}", {__MODULE__, event, result})
     {:ok, result}
   end
 

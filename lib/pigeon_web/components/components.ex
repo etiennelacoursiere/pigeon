@@ -3,7 +3,7 @@ defmodule PigeonWeb.Components do
     quote do
       import PigeonWeb.Components.{
         BasicTable,
-        LinkList,
+        DataList,
         Status,
         Button,
         Input

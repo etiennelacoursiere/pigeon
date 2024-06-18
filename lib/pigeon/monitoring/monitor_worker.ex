@@ -18,7 +18,6 @@ defmodule Pigeon.Monitoring.MonitorWorker do
   def perform(%Oban.Job{args: %{"monitor_id" => monitor_id}} = job) do
     monitor_id
     |> Monitoring.get_monitor()
-    |> Pigeon.Repo.preload(:settings)
     |> process_monitor(job)
   end
 

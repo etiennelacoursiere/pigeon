@@ -20,6 +20,37 @@ defmodule PigeonWeb.CoreComponents do
   import PigeonWeb.Gettext
 
   @doc """
+  Renders a header with title.
+  """
+  attr :class, :string, default: nil
+  attr :separator, :boolean, default: false
+
+  slot :inner_block, required: true
+  slot :subtitle
+  slot :actions
+
+  def header(assigns) do
+    ~H"""
+    <div class="flex flex-col gap-4 mb-5">
+      <header class={[@actions != [] && "flex items-center justify-between gap-6", @class]}>
+        <div>
+          <h1 class="text-2xl font-bold">
+            <%= render_slot(@inner_block) %>
+          </h1>
+          <p :if={@subtitle != []} class="text-sm text-gray-600">
+            <%= render_slot(@subtitle) %>
+          </p>
+        </div>
+        <div class="flex-none"><%= render_slot(@actions) %></div>
+      </header>
+      <%= if @separator do %>
+        <hr />
+      <% end %>
+    </div>
+    """
+  end
+
+  @doc """
   Renders a modal.
 
   ## Examples

@@ -4,28 +4,24 @@ defmodule PigeonWeb.Live.Incidents.Index do
   use PigeonWeb.Components
 
   def mount(_params, _session, socket) do
-    if connected?(socket), do: Pigeon.Monitoring.subscribe()
+    if connected?(socket), do: Pigeon.Monitoring.subscribe(:incident)
 
-    socket = assign(socket, :incidents, fetch_incidents())
+    socket = assign(socket, :incidents, Pigeon.Monitoring.list_incidents())
 
     {:ok, socket}
   end
 
-  def fetch_incidents() do
-    Pigeon.Monitoring.list_incidents()
-  end
-
   def handle_info({Pigeon.Monitoring, [:incident, _], _}, socket) do
-    {:noreply, assign(socket, :incidents, fetch_incidents())}
+    {:noreply, assign(socket, :incidents, Pigeon.Monitoring.list_incidents())}
   end
 
   def handle_info(_, socket), do: {:noreply, socket}
 
   def render(assigns) do
     ~H"""
-    <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold">Incidents</h1>
-    </div>
+    <.header>
+      Incidents
+    </.header>
     <%= if length(@incidents) == 0 do %>
       <p class="text-gray-500">Your biotech pigeon spies haven't reported an incident yet.</p>
     <% else %>

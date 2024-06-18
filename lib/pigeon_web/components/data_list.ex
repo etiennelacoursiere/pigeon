@@ -1,10 +1,10 @@
-defmodule PigeonWeb.Components.LinkList do
+defmodule PigeonWeb.Components.DataList do
   use Phoenix.Component
 
   slot :inner_block, required: true
   attr :rows, :list, default: []
 
-  def link_list(assigns) do
+  def data_list(assigns) do
     ~H"""
     <ul
       role="list"

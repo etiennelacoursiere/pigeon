@@ -14,7 +14,7 @@ alias Pigeon.Repo
 alias Pigeon.Accounts.User
 alias Pigeon.Monitoring
 
-_user = Repo.insert!(%User{name: "Etienne", email: "lacoursiere.etienne@gmail.com"})
+# _user = Repo.insert!(%User{name: "Etienne", email: "lacoursiere.etienne@gmail.com"})
 
 urls = [
   {"Folio", "https://sms.foliomedian.ca"},

@@ -16,7 +16,7 @@ defmodule PigeonWeb.Live.Monitors.Form do
   end
 
   def apply_action(:edit, %{"id" => id}, socket) do
-    case Monitoring.get_monitor(id) |> Pigeon.Repo.preload(:settings) do
+    case Monitoring.get_monitor(id) do
       nil ->
         {:noreply, redirect(socket, to: ~p"/monitors")}
 
@@ -47,7 +47,7 @@ defmodule PigeonWeb.Live.Monitors.Form do
 
   def update_monitor(params, socket) do
     case Monitoring.update_monitor(socket.assigns.form.data, params) do
-      {:ok, monitor} ->
+      {:ok, _monitor} ->
         {:noreply, redirect(socket, to: ~p"/monitors")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -72,13 +72,16 @@ defmodule PigeonWeb.Live.Monitors.Form do
   def render(assigns) do
     ~H"""
     <div class="max-w-3xl mx-auto">
-      <div class="pt-1">
-        <h1 class="text-2xl font-bold">Create a new monitor</h1>
-        <p class="text-sm text-gray-600">
+      <.header separator={true}>
+        <%= if @live_action == :new do %>
+          Create a new monitor
+        <% else %>
+          Edit monitor
+        <% end %>
+        <:subtitle :if={@live_action == :new}>
           Deploy your own personal pigeonbot to monitor any url you want.
-        </p>
-      </div>
-      <hr class="my-5" />
+        </:subtitle>
+      </.header>
       <.form for={@form} class="flex flex-col gap-4" phx-submit="submit">
         <.input field={@form[:url]} label="Url to monitor" placeholder="https://" />
         <.input field={@form[:name]} label="Monitor name" />

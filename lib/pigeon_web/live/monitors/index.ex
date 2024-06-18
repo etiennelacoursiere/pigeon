@@ -4,7 +4,7 @@ defmodule PigeonWeb.Live.Monitors.Index do
   use PigeonWeb.Components
 
   def mount(_params, _session, socket) do
-    if connected?(socket), do: Pigeon.Monitoring.subscribe()
+    if connected?(socket), do: Pigeon.Monitoring.subscribe(:monitor)
 
     socket = assign(socket, :monitors, fetch_monitors())
 
@@ -12,7 +12,7 @@ defmodule PigeonWeb.Live.Monitors.Index do
   end
 
   def fetch_monitors() do
-    Pigeon.Monitoring.list_monitors() |> Pigeon.Repo.preload(:settings)
+    Pigeon.Monitoring.list_monitors()
   end
 
   def handle_info({Pigeon.Monitoring, [:monitor, _], _}, socket) do
@@ -24,14 +24,16 @@ defmodule PigeonWeb.Live.Monitors.Index do
 
   def render(assigns) do
     ~H"""
-    <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold">Monitors</h1>
-      <.link navigate={~p"/monitors/new"} class={button_class()}>New Monitor</.link>
-    </div>
+    <.header>
+      Monitors
+      <:actions>
+        <.link navigate={~p"/monitors/new"} class={button_class()}>New Monitor</.link>
+      </:actions>
+    </.header>
     <%= if length(@monitors) == 0 do %>
       <p class="text-gray-500">No monitors found</p>
     <% else %>
-      <.link_list :let={monitor} rows={@monitors}>
+      <.data_list :let={monitor} rows={@monitors}>
         <div class="flex items-center gap-x-4">
           <.status status={monitor.status} />
           <div>
@@ -49,7 +51,7 @@ defmodule PigeonWeb.Live.Monitors.Index do
             <%= interval(monitor.settings.interval) %>
           </p>
         </div>
-      </.link_list>
+      </.data_list>
     <% end %>
     """
   end
