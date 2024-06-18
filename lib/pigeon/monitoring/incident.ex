@@ -30,12 +30,4 @@ defmodule Pigeon.Monitoring.Incident do
     |> cast(attrs, [:status, :resolved_on])
     |> validate_required([:status, :resolved_on])
   end
-
-  def duration(%{resolved_on: nil} = incident) do
-    NaiveDateTime.diff(NaiveDateTime.utc_now(), incident.inserted_at)
-  end
-
-  def duration(incident) do
-    NaiveDateTime.diff(incident.resolved_on, incident.inserted_at)
-  end
 end

@@ -31,13 +31,4 @@ defmodule Pigeon.Monitoring.Monitor do
     |> cast(attrs, [:status, :status_changed_at])
     |> validate_required([:status, :status_changed_at])
   end
-
-  def time_since_last_status_change(%{status_changed_at: status_changed_at})
-      when not is_nil(status_changed_at) do
-    NaiveDateTime.diff(NaiveDateTime.utc_now(), status_changed_at)
-  end
-
-  def time_since_last_status_change(%{inserted_at: inserted_at}) do
-    NaiveDateTime.diff(NaiveDateTime.utc_now(), inserted_at)
-  end
 end

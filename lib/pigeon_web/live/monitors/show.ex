@@ -1,5 +1,7 @@
 defmodule PigeonWeb.Live.Monitors.Show do
   alias Pigeon.Monitoring
+  alias Pigeon.Monitoring.Monitor
+  alias PigeonWeb.Live.Monitors.Utils, as: MonitorUtils
   use PigeonWeb, :live_view
   use PigeonWeb.Components
 
@@ -55,6 +57,31 @@ defmodule PigeonWeb.Live.Monitors.Show do
           </.link>
         </:actions>
       </.header>
+      <div>
+        <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
+          <div class="overflow-hidden rounded-lg bg-white px-4 py-5 sm:p-6 border border-gray-200">
+            <dt class="truncate text-sm font-medium text-gray-500">Status</dt>
+            <dd class="mt-1">
+              <span class="text-3xl font-semibold tracking-tight text-gray-900">
+                <%= @monitor.status |> to_string() |> String.capitalize() %>
+              </span>
+              <span class="text-sm text-gray-600">
+                for <%= MonitorUtils.status_changed_at(@monitor) %>
+              </span>
+            </dd>
+          </div>
+          <div class="overflow-hidden rounded-lg bg-white px-4 py-5 sm:p-6 border border-gray-200">
+            <dt class="truncate text-sm font-medium text-gray-500">Check interval</dt>
+            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
+              <%= MonitorUtils.interval(@monitor) %>
+            </dd>
+          </div>
+          <div class="overflow-hidden rounded-lg bg-white px-4 py-5 sm:p-6 border border-gray-200">
+            <dt class="truncate text-sm font-medium text-gray-500">Avg. Uptime</dt>
+            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">98.57%</dd>
+          </div>
+        </dl>
+      </div>
     </div>
     """
   end

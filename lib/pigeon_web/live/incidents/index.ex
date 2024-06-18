@@ -1,5 +1,6 @@
 defmodule PigeonWeb.Live.Incidents.Index do
   alias Pigeon.Monitoring.Incident
+  alias PigeonWeb.Live.Incidents.Utils, as: IncidentUtils
   use PigeonWeb, :live_view
   use PigeonWeb.Components
 
@@ -39,11 +40,10 @@ defmodule PigeonWeb.Live.Incidents.Index do
           <%= incident.root_cause %>
         </:column>
         <:column :let={incident} label="Started">
-          <%!-- TODO: Format based on user timezone --%>
-          <%= incident.inserted_at %>
+          <%= IncidentUtils.started_at(@current_user, incident.inserted_at) %>
         </:column>
         <:column :let={incident} label="Duration">
-          <%= duration(incident) %>
+          <%= IncidentUtils.duration(incident) %>
         </:column>
         <:column :let={incident} label="">
           <.link navigate={~p"/incidents/#{incident.id}"} class="font-bold underline">
@@ -53,15 +53,5 @@ defmodule PigeonWeb.Live.Incidents.Index do
       </.basic_table>
     <% end %>
     """
-  end
-
-  defp duration(incident) do
-    {h, m, s, _} =
-      incident
-      |> Incident.duration()
-      |> Timex.Duration.from_seconds()
-      |> Timex.Duration.to_clock()
-
-    "#{h}h #{m}m #{s}s"
   end
 end

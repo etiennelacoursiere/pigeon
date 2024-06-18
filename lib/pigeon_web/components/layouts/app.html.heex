@@ -1,17 +1,21 @@
 <%= if @current_user do %>
-  <header class="flex gap-4 items-center justify-between border-b border-zinc-100 py-2 px-4 sm:px-6 lg:px-8 bg-white">
-    <.link navigate={~p"/"} class="text-xl font-bold leading-6">Pigeon</.link>
-    <div class="flex items-center gap-4 font-medium leading-6">
-      <.link navigate={~p"/monitors"} class="hover:underline">Monitors</.link>
-      <.link navigate={~p"/incidents"} class="hover:underline">Incidents</.link>
-    </div>
-    <div class="flex">
-      <.link
-        navigate={~p"/users/settings"}
-        class="flex size-9 rounded-full bg-black items-center justify-center"
-      >
-        <span class="text-white font-medium leading-none">E</span>
-      </.link>
+  <header class="border-b border-gray-200 py-2 px-4 sm:px-6 lg:px-8 bg-white">
+    <div class="flex gap-4 items-center justify-between max-w-7xl mx-auto">
+      <.link navigate={~p"/"} class="text-xl font-bold leading-6">Pigeon</.link>
+      <div class="flex items-center gap-4 font-medium leading-6">
+        <.link navigate={~p"/monitors"} class="hover:underline">Monitors</.link>
+        <.link navigate={~p"/incidents"} class="hover:underline">Incidents</.link>
+      </div>
+      <div class="flex">
+        <.link
+          navigate={~p"/users/settings"}
+          class="flex size-9 rounded-full bg-black items-center justify-center"
+        >
+          <span class="text-white font-medium leading-none">
+            <%= @current_user.email |> String.codepoints() |> List.first() |> String.capitalize() %>
+          </span>
+        </.link>
+      </div>
     </div>
   </header>
 <% end %>
