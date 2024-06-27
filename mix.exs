@@ -5,7 +5,7 @@ defmodule Pigeon.MixProject do
     [
       app: :pigeon,
       version: "0.1.0",
-      elixir: "~> 1.17.0-rc.1",
+      elixir: "~> 1.17.1",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -60,7 +60,8 @@ defmodule Pigeon.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.2"},
       {:oban, "~> 2.17"},
-      {:timex, "~> 3.0"}
+      {:timex, "~> 3.0"},
+      {:req, "~> 0.5.0"}
     ]
   end
 

@@ -28,7 +28,7 @@ defmodule PigeonWeb.Live.Incidents.Index do
     <% else %>
       <.basic_table rows={@incidents}>
         <:column :let={incident} label="Status">
-          <div class="flex gap-2">
+          <div class="flex gap-2 items-center">
             <.status status={incident.status} />
             <span><%= incident.status %></span>
           </div>

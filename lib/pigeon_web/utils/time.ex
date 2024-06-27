@@ -5,7 +5,7 @@ defmodule PigeonWeb.Utils.Time do
     |> abbreviate_duration()
   end
 
-  # TODO: Implement a better solution this is stupid.
+  # TODO: Implement a better solution this is extremely stupid.
   # Probably implement a Timex Formatter
   def abbreviate_duration(duration) do
     duration

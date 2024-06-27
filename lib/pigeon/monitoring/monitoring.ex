@@ -25,8 +25,20 @@ defmodule Pigeon.Monitoring do
   def update_monitor(monitor, attrs) do
     monitor
     |> Monitor.changeset(attrs)
+    |> tap(&reschedule_monitor(monitor, &1))
     |> Repo.update()
     |> broadcast([:monitor, :updated])
+  end
+
+  defp reschedule_monitor(monitor, %Ecto.Changeset{changes: changes}) do
+    settings = changes |> Map.get(:settings, %{}) |> Map.get(:changes, %{})
+    url_changed = Map.has_key?(changes, :url)
+    interval_changed = Map.has_key?(settings, :interval)
+
+    if url_changed or interval_changed do
+      cancel_worker_jobs(monitor.id)
+      start_monitoring(monitor.id)
+    end
   end
 
   def update_monitor_status(monitor, attrs) do
@@ -41,20 +53,21 @@ defmodule Pigeon.Monitoring do
   end
 
   def pause_monitoring(%Monitor{id: monitor_id} = monitor) do
+    cancel_worker_jobs(monitor_id)
+    update_monitor_status(monitor, %{status: :paused})
+  end
+
+  defp cancel_worker_jobs(monitor_id) do
     monitor_id = to_string(monitor_id)
 
     Oban.Job
     |> where(worker: "Pigeon.Monitoring.MonitorWorker")
     |> where([j], fragment("?->>'monitor_id' = ?", j.args, ^monitor_id))
     |> Oban.cancel_all_jobs()
-
-    update_monitor_status(monitor, %{status: :paused})
   end
 
-  def poke_monitor(%Monitor{id: id, url: url}) do
-    Finch.build(:get, url)
-    |> Finch.Request.put_private(:monitor_id, id)
-    |> Finch.request(Pigeon.Finch)
+  # TODO: Calculate the average uptime of the monitor
+  def average_uptime(monitor) do
   end
 
   def list_incidents do

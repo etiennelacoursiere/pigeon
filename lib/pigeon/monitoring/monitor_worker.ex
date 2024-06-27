@@ -5,6 +5,7 @@ defmodule Pigeon.Monitoring.MonitorWorker do
     max_attempts: 1
 
   alias Pigeon.Monitoring
+  alias Pigeon.Monitoring.Monitor
 
   def insert(monitor_id) do
     new(%{"monitor_id" => monitor_id}) |> Oban.insert()
@@ -27,23 +28,37 @@ defmodule Pigeon.Monitoring.MonitorWorker do
   end
 
   defp process_monitor(monitor, _job) do
-    case Monitoring.poke_monitor(monitor) do
-      {:ok, %{status: response_status}} ->
+    {request, response} = poke_monitor(monitor)
+
+    case response do
+      {:ok, %{status: response_status} = response} ->
         new_monitor_status = get_status(response_status)
 
         if new_monitor_status != monitor.status do
           Monitoring.update_monitor_status(monitor, %{status: new_monitor_status})
 
           case new_monitor_status do
-            :down -> Monitoring.create_incident(monitor, %{root_cause: inspect(response_status)})
-            :up -> Monitoring.resolve_latest_incident(monitor)
+            :down ->
+              Monitoring.create_incident(monitor, %{
+                root_cause: inspect(response_status),
+                request: request,
+                response: response
+              })
+
+            :up ->
+              Monitoring.resolve_latest_incident(monitor)
           end
         end
 
       {:error, reason} ->
         if monitor.status != :down do
           Monitoring.update_monitor_status(monitor, %{status: :down})
-          Monitoring.create_incident(monitor, %{root_cause: inspect(reason)})
+
+          Monitoring.create_incident(monitor, %{
+            root_cause: reason,
+            request: request,
+            response: %{}
+          })
         end
     end
 
@@ -61,4 +76,37 @@ defmodule Pigeon.Monitoring.MonitorWorker do
       true -> :down
     end
   end
+
+  def poke_monitor(%Monitor{id: _id, url: url}) do
+    {request, response} = Req.new(method: :head, url: url) |> Req.run()
+
+    response =
+      case response do
+        %Req.Response{} = response -> {:ok, strip(response)}
+        %Req.TransportError{reason: reason} -> {:error, error_reason(reason)}
+      end
+
+    {strip(request), response}
+  end
+
+  defp strip(%Req.Request{} = request) do
+    %{
+      headers: request.headers,
+      url: URI.to_string(request.url),
+      method: request.method
+    }
+  end
+
+  defp strip(%Req.Response{} = response) do
+    %{
+      status: response.status,
+      headers: response.headers,
+      body: response.body
+    }
+  end
+
+  defp error_reason(:nxdomain), do: "DNS resolution failed"
+  defp error_reason(:econnrefused), do: "Connection refused"
+  defp error_reason(:timeout), do: "Connection timeout"
+  defp error_reason(:closed), do: "Connection closed"
 end

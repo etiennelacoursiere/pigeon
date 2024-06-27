@@ -6,8 +6,8 @@ defmodule Pigeon.Monitoring.Incident do
     field :status, Ecto.Enum, values: [:resolved, :ongoing], default: :ongoing
     field :root_cause, :string
     field :resolved_on, :naive_datetime
-    # field :request, :map
-    # field :response, :map
+    field :request, :map
+    field :response, :map
 
     belongs_to :monitor, Pigeon.Monitoring.Monitor
 
@@ -16,8 +16,8 @@ defmodule Pigeon.Monitoring.Incident do
 
   def new_incident_changeset(incident, attrs \\ %{}) do
     incident
-    |> cast(attrs, [:monitor_id, :root_cause])
-    |> validate_required([:monitor_id, :root_cause])
+    |> cast(attrs, [:monitor_id, :root_cause, :request, :response])
+    |> validate_required([:monitor_id, :root_cause, :request, :response])
   end
 
   def resolve_incident_changeset(incident, attrs \\ %{}) do
