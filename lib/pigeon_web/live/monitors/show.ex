@@ -1,17 +1,28 @@
 defmodule PigeonWeb.Live.Monitors.Show do
   alias Pigeon.Monitoring
-  alias Pigeon.Monitoring.Monitor
   alias PigeonWeb.Live.Monitors.Utils, as: MonitorUtils
   use PigeonWeb, :live_view
   use PigeonWeb.Components
 
   def mount(%{"id" => id}, _, socket) do
-    # TODO: Check if the monitor exists
+    case Monitoring.get_monitor(id) do
+      nil ->
+        socket =
+          socket
+          |> put_flash(:error, "Monitor not found")
+          |> redirect(to: "/monitors")
 
-    monitor = Monitoring.get_monitor(id)
-    if connected?(socket), do: Pigeon.Monitoring.subscribe(:monitor, id)
+        {:ok, socket}
 
-    {:ok, assign(socket, monitor: monitor)}
+      monitor ->
+        if connected?(socket), do: Pigeon.Monitoring.subscribe(:monitor, id)
+
+        socket =
+          socket
+          |> assign(:monitor, monitor)
+
+        {:ok, socket}
+    end
   end
 
   def handle_event("start_monitoring", _, socket) do
@@ -78,7 +89,9 @@ defmodule PigeonWeb.Live.Monitors.Show do
           </div>
           <div class="overflow-hidden rounded-lg bg-white px-4 py-5 sm:p-6 border border-gray-200">
             <dt class="truncate text-sm font-medium text-gray-500">Avg. Uptime</dt>
-            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">98.57%</dd>
+            <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
+              <%= Monitoring.uptime_percentage(@monitor) %>%
+            </dd>
           </div>
         </dl>
       </div>

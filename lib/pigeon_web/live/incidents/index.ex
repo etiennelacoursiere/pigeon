@@ -1,5 +1,4 @@
 defmodule PigeonWeb.Live.Incidents.Index do
-  alias Pigeon.Monitoring.Incident
   alias PigeonWeb.Live.Incidents.Utils, as: IncidentUtils
   use PigeonWeb, :live_view
   use PigeonWeb.Components

@@ -1,5 +1,4 @@
 defmodule PigeonWeb.Live.Monitors.Index do
-  alias Pigeon.Monitoring.Monitor
   alias PigeonWeb.Live.Monitors.Utils, as: MonitorUtils
   use PigeonWeb, :live_view
   use PigeonWeb.Components

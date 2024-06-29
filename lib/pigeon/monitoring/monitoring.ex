@@ -66,8 +66,28 @@ defmodule Pigeon.Monitoring do
     |> Oban.cancel_all_jobs()
   end
 
-  # TODO: Calculate the average uptime of the monitor
-  def average_uptime(monitor) do
+  def uptime_percentage(monitor) do
+    incidents =
+      Incident
+      |> where(monitor_id: ^monitor.id)
+      |> select([i], %{inserted_at: i.inserted_at, resolved_on: i.resolved_on})
+      |> Repo.all()
+
+    downtime =
+      Enum.reduce(incidents, 0, fn incident, acc ->
+        resolved_on =
+          case incident.resolved_on do
+            nil -> NaiveDateTime.utc_now()
+            t -> t
+          end
+
+        acc + Timex.diff(resolved_on, incident.inserted_at, :seconds)
+      end)
+
+    total_time = Timex.diff(NaiveDateTime.utc_now(), monitor.inserted_at, :seconds)
+
+    percentage = (total_time - downtime) / total_time * 100
+    Float.round(percentage, 2)
   end
 
   def list_incidents do
