@@ -1,6 +1,7 @@
 defmodule PigeonWeb.Live.Monitors.Show do
   alias Pigeon.Monitoring
   alias PigeonWeb.Live.Monitors.Utils, as: MonitorUtils
+  alias PigeonWeb.Live.Incidents.Utils, as: IncidentUtils
   use PigeonWeb, :live_view
   use PigeonWeb.Components
 
@@ -20,6 +21,7 @@ defmodule PigeonWeb.Live.Monitors.Show do
         socket =
           socket
           |> assign(:monitor, monitor)
+          |> assign(:incidents, Monitoring.list_incidents_for_monitor(monitor))
 
         {:ok, socket}
     end
@@ -68,7 +70,7 @@ defmodule PigeonWeb.Live.Monitors.Show do
           </.link>
         </:actions>
       </.header>
-      <div>
+      <div class="mb-10">
         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
           <div class="overflow-hidden rounded-lg bg-white px-4 py-5 sm:p-6 border border-gray-200">
             <dt class="truncate text-sm font-medium text-gray-500">Status</dt>
@@ -95,6 +97,37 @@ defmodule PigeonWeb.Live.Monitors.Show do
           </div>
         </dl>
       </div>
+
+      <h2 class="text-2xl font-bold mb-5">Incidents</h2>
+      <%= if length(@incidents) == 0 do %>
+        <p class="text-gray-500">Your biotech pigeon spies haven't reported an incident yet.</p>
+      <% else %>
+        <.basic_table rows={@incidents}>
+          <:column :let={incident} label="Status">
+            <div class="flex gap-2 items-center">
+              <.status status={incident.status} />
+              <span><%= incident.status %></span>
+            </div>
+          </:column>
+          <:column :let={incident} label="Monitor">
+            <%= incident.monitor.name %>
+          </:column>
+          <:column :let={incident} label="Root cause">
+            <%= incident.root_cause %>
+          </:column>
+          <:column :let={incident} label="Started">
+            <%= IncidentUtils.started_at(@current_user, incident.inserted_at) %>
+          </:column>
+          <:column :let={incident} label="Duration">
+            <%= IncidentUtils.duration(incident) %>
+          </:column>
+          <:column :let={incident} label="">
+            <.link navigate={~p"/incidents/#{incident.id}"} class="font-bold underline">
+              View
+            </.link>
+          </:column>
+        </.basic_table>
+      <% end %>
     </div>
     """
   end

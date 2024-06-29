@@ -97,6 +97,14 @@ defmodule Pigeon.Monitoring do
     |> Repo.preload([:monitor])
   end
 
+  def list_incidents_for_monitor(monitor) do
+    Incident
+    |> where(monitor_id: ^monitor.id)
+    |> order_by([i], desc: i.inserted_at)
+    |> Repo.all()
+    |> Repo.preload([:monitor])
+  end
+
   def get_incident(id) do
     Repo.get(Incident, id) |> Repo.preload([:monitor])
   end
