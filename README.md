@@ -1,18 +1,8 @@
 # Pigeon
 
-To start your Phoenix server:
+Pigeon is a very basic url monitoring side project that will probably never be worked on again.
 
-  * Run `mix setup` to install and setup dependencies
-  * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+![image](https://github.com/user-attachments/assets/c8fbef2f-02e9-44e7-b4be-93caf51505cb)
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
-
-## Learn more
-
-  * Official website: https://www.phoenixframework.org/
-  * Guides: https://hexdocs.pm/phoenix/overview.html
-  * Docs: https://hexdocs.pm/phoenix
-  * Forum: https://elixirforum.com/c/phoenix-forum
-  * Source: https://github.com/phoenixframework/phoenix
+![image](https://github.com/user-attachments/assets/213bf2ca-151e-45bc-8005-e653477fbec9)
