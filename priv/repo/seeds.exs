@@ -14,13 +14,9 @@ alias Pigeon.Repo
 alias Pigeon.Accounts.User
 alias Pigeon.Monitoring
 
-# _user = Repo.insert!(%User{name: "Etienne", email: "lacoursiere.etienne@gmail.com"})
-
 urls = [
-  {"Folio", "https://sms.foliomedian.ca"},
-  {"FCMQ", "https://app.fcmq.qc.ca"},
-  {"Culture Go", "https://app.culturego.io"},
-  {"Localhost", "http://localhost:4000"}
+  {"Localhost", "http://localhost:4000"},
+  {"Phoenix Website", "https://www.phoenixframework.org/"}
 ]
 
 Enum.each(urls, fn {name, url} ->

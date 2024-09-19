@@ -16,7 +16,10 @@ defmodule PigeonWeb.Live.Monitors.Show do
         {:ok, socket}
 
       monitor ->
-        if connected?(socket), do: Pigeon.Monitoring.subscribe(:monitor, id)
+        if connected?(socket) do
+          Pigeon.Monitoring.subscribe(:monitor, id)
+          Pigeon.Monitoring.subscribe(:incident)
+        end
 
         socket =
           socket
@@ -37,9 +40,30 @@ defmodule PigeonWeb.Live.Monitors.Show do
     {:noreply, socket}
   end
 
+  def handle_event("delete_monitor", _, socket) do
+    socket =
+      case Monitoring.delete_monitor(socket.assigns.monitor) do
+        {:ok, _} ->
+          socket
+          |> put_flash(:info, "Monitor deleted")
+          |> redirect(to: "/monitors")
+
+        {:error, _} ->
+          socket
+          |> put_flash(:error, "Failed to delete monitor")
+          |> redirect(to: "/monitors")
+      end
+
+    {:noreply, socket}
+  end
+
   def handle_info({Pigeon.Monitoring, [:monitor, _], monitor}, socket) do
     socket = assign(socket, :monitor, Monitoring.get_monitor(monitor.id))
     {:noreply, socket}
+  end
+
+  def handle_info({Pigeon.Monitoring, [:incident, _], _}, socket) do
+    {:noreply, assign(socket, :incidents, Pigeon.Monitoring.list_incidents())}
   end
 
   def handle_info(_, socket), do: {:noreply, socket}
@@ -68,9 +92,10 @@ defmodule PigeonWeb.Live.Monitors.Show do
           <.link navigate={~p"/monitors/#{@monitor.id}/edit"} class={button_class()}>
             Edit Monitor
           </.link>
+          <.button phx-click="delete_monitor" variant="danger">Delete Monitor</.button>
         </:actions>
       </.header>
-      <div class="mb-10">
+      <div class="mb-5">
         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
           <div class="overflow-hidden rounded-lg bg-white px-4 py-5 sm:p-6 border border-gray-200">
             <dt class="truncate text-sm font-medium text-gray-500">Status</dt>

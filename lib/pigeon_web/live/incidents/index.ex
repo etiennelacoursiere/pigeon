@@ -11,17 +11,21 @@ defmodule PigeonWeb.Live.Incidents.Index do
     {:ok, socket}
   end
 
+  # TODO: this is not right, i should listen for incident for this specific monitor
   def handle_info({Pigeon.Monitoring, [:incident, _], _}, socket) do
-    {:noreply, assign(socket, :incidents, Pigeon.Monitoring.list_incidents())}
+    {:noreply,
+     assign(
+       socket,
+       :incidents,
+       Pigeon.Monitoring.list_incidents_for_monitor(socket.assigns.monitor)
+     )}
   end
 
   def handle_info(_, socket), do: {:noreply, socket}
 
   def render(assigns) do
     ~H"""
-    <.header>
-      Incidents
-    </.header>
+    <.header>Incidents</.header>
     <%= if length(@incidents) == 0 do %>
       <p class="text-gray-500">Your biotech pigeon spies haven't reported an incident yet.</p>
     <% else %>

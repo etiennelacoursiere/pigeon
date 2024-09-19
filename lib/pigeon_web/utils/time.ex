@@ -8,22 +8,23 @@ defmodule PigeonWeb.Utils.Time do
   # TODO: Implement a better solution this is extremely stupid.
   # Probably implement a Timex Formatter
   def abbreviate_duration(duration) do
-    duration
-    |> String.replace("seconds", "s")
-    |> String.replace("second", "s")
-    |> String.replace("minutes", "m")
-    |> String.replace("minute", "m")
-    |> String.replace("hours", "h")
-    |> String.replace("hour", "h")
-    |> String.replace("days", "d")
-    |> String.replace("day", "d")
-    |> String.replace("weeks", "w")
-    |> String.replace("week", "w")
-    |> String.replace("months", "mo")
-    |> String.replace("month", "mo")
-    |> String.replace("years", "y")
-    |> String.replace("year", "y")
-    |> String.replace(" ", "")
-    |> String.replace(",", " ")
+    regex = ~r/(\d+)\s*(second|minute|hour|day|week|month|year)s?/i
+
+    abbreviations = %{
+      "second" => "s",
+      "minute" => "m",
+      "hour" => "h",
+      "day" => "d",
+      "week" => "w",
+      "month" => "mo",
+      "year" => "y"
+    }
+
+    Regex.replace(regex, duration, fn _, value, unit ->
+      abbreviated_unit = Map.get(abbreviations, String.downcase(unit), unit)
+      "#{value}#{abbreviated_unit}"
+    end)
+    |> String.replace(~r/\s+/, " ")
+    |> String.trim()
   end
 end

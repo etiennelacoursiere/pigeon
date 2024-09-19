@@ -181,7 +181,6 @@ defmodule Pigeon.Accounts do
   def update_user_timezone(user, attrs) do
     user
     |> User.timezone_changeset(attrs)
-    |> IO.inspect()
     |> Repo.update()
   end
 

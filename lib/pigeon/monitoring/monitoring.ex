@@ -30,6 +30,12 @@ defmodule Pigeon.Monitoring do
     |> broadcast([:monitor, :updated])
   end
 
+  def delete_monitor(monitor) do
+    monitor
+    |> Repo.delete()
+    |> broadcast([:monitor, :deleted])
+  end
+
   defp reschedule_monitor(monitor, %Ecto.Changeset{changes: changes}) do
     settings = changes |> Map.get(:settings, %{}) |> Map.get(:changes, %{})
     url_changed = Map.has_key?(changes, :url)
@@ -73,6 +79,7 @@ defmodule Pigeon.Monitoring do
       |> select([i], %{inserted_at: i.inserted_at, resolved_on: i.resolved_on})
       |> Repo.all()
 
+    # TODO: this could be in the database instead of calculated
     downtime =
       Enum.reduce(incidents, 0, fn incident, acc ->
         resolved_on =
@@ -86,8 +93,12 @@ defmodule Pigeon.Monitoring do
 
     total_time = Timex.diff(NaiveDateTime.utc_now(), monitor.inserted_at, :seconds)
 
-    percentage = (total_time - downtime) / total_time * 100
-    Float.round(percentage, 2)
+    if total_time == 0 do
+      "--"
+    else
+      percentage = (total_time - downtime) / total_time * 100
+      Float.round(percentage, 2)
+    end
   end
 
   def list_incidents do
